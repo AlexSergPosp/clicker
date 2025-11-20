@@ -174,7 +174,7 @@
   </div>
 
   <button class="upgrade-btn" id="upgradeBtn">
-    Upgrade (+доход) — 5
+    5
   </button>
 
   <div class="tap-area" id="tapArea">
@@ -272,7 +272,7 @@
 
     upgradeCost = Math.round(incomePerSecond * n);
     upgradeCostEl.textContent = upgradeCost;
-    upgradeBtn.textContent = `Upgrade (+доход) — ${upgradeCost}`;
+    upgradeBtn.textContent = `Upgrade for ${upgradeCost}`;
     upgradeBtn.disabled = balance < upgradeCost;
 
     checkAchievements();
