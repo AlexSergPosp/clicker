@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Простой кликер</title>
+  <title>Кликер с 5 генераторами</title>
   <style>
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -20,7 +20,7 @@
       padding: 20px 24px;
       border-radius: 12px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-      width: 360px;
+      width: 420px;
       position: relative;
       overflow: hidden;
     }
@@ -35,6 +35,8 @@
       font-size: 14px;
       margin-bottom: 16px;
       line-height: 1.5;
+      border-bottom: 1px solid #4a5a6c;
+      padding-bottom: 8px;
     }
 
     .label {
@@ -48,32 +50,6 @@
     .row {
       display: flex;
       justify-content: space-between;
-    }
-
-    .upgrade-btn {
-      width: 100%;
-      margin-bottom: 12px;
-      padding: 10px 16px;
-      font-size: 14px;
-      font-weight: 600;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      background: #2ed38d;
-      color: #0f1620;
-      transition: transform 0.05s ease, box-shadow 0.05s ease, background 0.2s ease;
-      box-shadow: 0 4px 0 #149e6b;
-    }
-
-    .upgrade-btn:active:not(:disabled) {
-      transform: translateY(2px);
-      box-shadow: 0 2px 0 #149e6b;
-    }
-
-    .upgrade-btn:disabled {
-      cursor: default;
-      opacity: 0.5;
-      box-shadow: 0 0 0 transparent;
     }
 
     .tap-area {
@@ -101,6 +77,78 @@
       font-size: 12px;
       opacity: 0.7;
       margin-top: 4px;
+    }
+
+    .generators {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 320px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .generator {
+      border-radius: 9px;
+      padding: 8px 10px;
+      background: #1d2735;
+      border: 1px solid #4a5a6c;
+      font-size: 13px;
+    }
+
+    .generator-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+
+    .generator-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 2px;
+    }
+
+    .gen-buttons {
+      display: flex;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 6px 8px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.05s ease, box-shadow 0.05s ease, background 0.2s ease, opacity 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .btn-buy {
+      background: #ff9f40;
+      color: #2a1300;
+      box-shadow: 0 3px 0 #cc6a12;
+    }
+
+    .btn-upgrade {
+      background: #2ed38d;
+      color: #0f1620;
+      box-shadow: 0 3px 0 #149e6b;
+    }
+
+    .btn:active:not(:disabled) {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+    }
+
+    .btn:disabled {
+      cursor: default;
+      opacity: 0.45;
+      box-shadow: none;
     }
 
     .tier-up-banner,
@@ -148,63 +196,216 @@
   <div class="tier-up-banner" id="tierUpBanner">Tier Up!</div>
   <div class="achievement-banner" id="achievementBanner">Achievement!</div>
 
-  <div class="title">Очень простой кликер</div>
+  <div class="title">Кликер с 5 генераторами</div>
 
+  <!-- Глобальные статы -->
   <div class="stats">
     <div class="row">
       <span class="label">Баланс:</span>
       <span class="value" id="balance">0</span>
     </div>
     <div class="row">
-      <span class="label">Доход в секунду:</span>
-      <span class="value" id="incomePerSec">1</span>
+      <span class="label">Общий доход в секунду:</span>
+      <span class="value" id="totalIncomePerSec">0</span>
     </div>
     <div class="row">
-      <span class="label">Уровень:</span>
-      <span class="value" id="level">0</span>
+      <span class="label">Уровень (общий):</span>
+      <span class="value" id="globalLevel">0</span>
     </div>
     <div class="row">
       <span class="label">Тир:</span>
       <span class="value" id="tier">1</span>
     </div>
-    <div class="row">
-      <span class="label">Стоимость апгрейда:</span>
-      <span class="value" id="upgradeCost">5</span>
-    </div>
   </div>
 
-  <button class="upgrade-btn" id="upgradeBtn">
-    5
-  </button>
-
+  <!-- Тап-зона -->
   <div class="tap-area" id="tapArea">
     Тап-зона — нажимай, чтобы получать валюту!
     <div class="tap-hint">
-      Каждый тап даёт +текущий доход в секунду.
+      Каждый тап даёт +общий доход в секунду.
+    </div>
+  </div>
+
+  <!-- Генераторы -->
+  <div class="generators">
+    <!-- Генератор 1 -->
+    <div class="generator" id="gen1">
+      <div class="generator-header">
+        <span>Генератор 1</span>
+        <span class="label">Множитель: x1</span>
+      </div>
+      <div class="generator-row">
+        <span class="label">Доход:</span>
+        <span class="value" id="gen1Income">0</span>
+      </div>
+      <div class="generator-row">
+        <span class="label">Уровень генератора:</span>
+        <span class="value" id="gen1Level">0</span>
+      </div>
+      <div class="generator-row">
+        <span class="label">Стоимость апгрейда:</span>
+        <span class="value" id="gen1UpgradeCost">0</span>
+      </div>
+      <div class="gen-buttons">
+        <button class="btn btn-upgrade" id="gen1UpgradeBtn">
+          Upgrade
+        </button>
+      </div>
+    </div>
+
+    <!-- Генераторы 2–5 -->
+    <div class="generator" id="gen2">
+      <div class="generator-header">
+        <span>Генератор 2</span>
+        <span class="label">Множитель: x2</span>
+      </div>
+      <div class="generator-row">
+        <span class="label">Доход:</span>
+        <span class="value" id="gen2Income">0</span>
+      </div>
+      <div class="generator-row">
+        <span class="label">Уровень генератора:</span>
+        <span class="value" id="gen2Level">0</span>
+      </div>
+      <div class="generator-row">
+        <span class="label">Стоимость апгрейда:</span>
+        <span class="value" id="gen2UpgradeCost">0</span>
+      </div>
+      <div class="generator-row">
+        <span class="label">Стоимость покупки:</span>
+        <span class="value" id="gen2BuyCost">0</span>
+      </div>
+      <div class="gen-buttons">
+        <button class="btn btn-buy" id="gen2BuyBtn">Купить</button>
+        <button class="btn btn-upgrade" id="gen2UpgradeBtn">Upgrade</button>
+      </div>
+    </div>
+
+    <div class="generator" id="gen3">
+      <div class="generator-header">
+        <span>Генератор 3</span>
+        <span class="label">Множитель: x3</span>
+      </div>
+      <div class="generator-row">
+        <span class="label">Доход:</span>
+        <span class="value" id="gen3Income">0</span>
+      </div>
+      <div class="generator-row">
+        <span class="label">Уровень генератора:</span>
+        <span class="value" id="gen3Level">0</span>
+      </div>
+      <div class="generator-row">
+        <span class="label">Стоимость апгрейда:</span>
+        <span class="value" id="gen3UpgradeCost">0</span>
+      </div>
+      <div class="generator-row">
+        <span class="label">Стоимость покупки:</span>
+        <span class="value" id="gen3BuyCost">0</span>
+      </div>
+      <div class="gen-buttons">
+        <button class="btn btn-buy" id="gen3BuyBtn">Купить</button>
+        <button class="btn btn-upgrade" id="gen3UpgradeBtn">Upgrade</button>
+      </div>
+    </div>
+
+    <div class="generator" id="gen4">
+      <div class="generator-header">
+        <span>Генератор 4</span>
+        <span class="label">Множитель: x4</span>
+      </div>
+      <div class="generator-row">
+        <span class="label">Доход:</span>
+        <span class="value" id="gen4Income">0</span>
+      </div>
+      <div class="generator-row">
+        <span class="label">Уровень генератора:</span>
+        <span class="value" id="gen4Level">0</span>
+      </div>
+      <div class="generator-row">
+        <span class="label">Стоимость апгрейда:</span>
+        <span class="value" id="gen4UpgradeCost">0</span>
+      </div>
+      <div class="generator-row">
+        <span class="label">Стоимость покупки:</span>
+        <span class="value" id="gen4BuyCost">0</span>
+      </div>
+      <div class="gen-buttons">
+        <button class="btn btn-buy" id="gen4BuyBtn">Купить</button>
+        <button class="btn btn-upgrade" id="gen4UpgradeBtn">Upgrade</button>
+      </div>
+    </div>
+
+    <div class="generator" id="gen5">
+      <div class="generator-header">
+        <span>Генератор 5</span>
+        <span class="label">Множитель: x5</span>
+      </div>
+      <div class="generator-row">
+        <span class="label">Доход:</span>
+        <span class="value" id="gen5Income">0</span>
+      </div>
+      <div class="generator-row">
+        <span class="label">Уровень генератора:</span>
+        <span class="value" id="gen5Level">0</span>
+      </div>
+      <div class="generator-row">
+        <span class="label">Стоимость апгрейда:</span>
+        <span class="value" id="gen5UpgradeCost">0</span>
+      </div>
+      <div class="generator-row">
+        <span class="label">Стоимость покупки:</span>
+        <span class="value" id="gen5BuyCost">0</span>
+      </div>
+      <div class="gen-buttons">
+        <button class="btn btn-buy" id="gen5BuyBtn">Купить</button>
+        <button class="btn btn-upgrade" id="gen5UpgradeBtn">Upgrade</button>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
-  // --- Основные переменные ---
-  let balance = 0;          // Текущий баланс
-  let incomePerSecond = 1;  // Доход в секунду
-  let level = 0;            // Локальный уровень внутри тира (0–19)
-  let tier = 1;             // Тир
-  let n = 5;                // Множитель для стоимости
-  let upgradeCost = incomePerSecond * n;
+  // --- Глобальные переменные ---
+  let balance = 0;
+  let tier = 1;
+  let globalLevel = 0;  // общий уровень, растёт при любом апгрейде
+  let n = 5;            // множитель стоимости, сбрасывается каждые 20 уровней
   let tierUpTimeoutId = null;
   let achievementTimeoutId = null;
 
   const balanceEl = document.getElementById('balance');
-  const incomePerSecEl = document.getElementById('incomePerSec');
-  const levelEl = document.getElementById('level');
+  const totalIncomePerSecEl = document.getElementById('totalIncomePerSec');
+  const globalLevelEl = document.getElementById('globalLevel');
   const tierEl = document.getElementById('tier');
-  const upgradeCostEl = document.getElementById('upgradeCost');
-  const upgradeBtn = document.getElementById('upgradeBtn');
   const tapArea = document.getElementById('tapArea');
   const tierUpBanner = document.getElementById('tierUpBanner');
   const achievementBanner = document.getElementById('achievementBanner');
+
+  // --- Описание генераторов ---
+  const generators = [
+    { index: 1, incomeBase: 1,  level: 0, purchased: true,  buyCost: 0 },
+    { index: 2, incomeBase: 1,  level: 0, purchased: false, buyCost: 200 },
+    { index: 3, incomeBase: 1,  level: 0, purchased: false, buyCost: 300 },
+    { index: 4, incomeBase: 1,  level: 0, purchased: false, buyCost: 400 },
+    { index: 5, incomeBase: 1,  level: 0, purchased: false, buyCost: 500 }
+  ];
+
+  // DOM-элементы для генераторов
+  const genIncomeEls = {};
+  const genLevelEls = {};
+  const genUpgradeCostEls = {};
+  const genBuyCostEls = {};
+  const genBuyBtns = {};
+  const genUpgradeBtns = {};
+
+  for (let i = 1; i <= 5; i++) {
+    genIncomeEls[i] = document.getElementById(`gen${i}Income`);
+    genLevelEls[i] = document.getElementById(`gen${i}Level`);
+    genUpgradeCostEls[i] = document.getElementById(`gen${i}UpgradeCost`);
+    genBuyCostEls[i] = document.getElementById(`gen${i}BuyCost`);
+    genBuyBtns[i] = document.getElementById(`gen${i}BuyBtn`);
+    genUpgradeBtns[i] = document.getElementById(`gen${i}UpgradeBtn`);
+  }
 
   // --- Достижения ---
   const achievements = [
@@ -215,7 +416,7 @@
     { id: 'b_500',  threshold: 500,       title: 'Тысяча уже близко' },
     { id: 'b_1k',   threshold: 1000,      title: 'Первая тысяча' },
     { id: 'b_2k5',  threshold: 2500,      title: 'Местный богач' },
-    { id: 'b_5k',   threshold: 5000,      title: 'Серьёзные сумме' },
+    { id: 'b_5k',   threshold: 5000,      title: 'Серьёзные суммы' },
     { id: 'b_10k',  threshold: 10000,     title: 'Маленький бизнес' },
     { id: 'b_25k',  threshold: 25000,     title: 'Инвестор-любитель' },
     { id: 'b_50k',  threshold: 50000,     title: 'Полтинник в кармане' },
@@ -223,13 +424,30 @@
     { id: 'b_250k', threshold: 250000,    title: 'Серьёзный капитал' },
     { id: 'b_500k', threshold: 500000,    title: 'Полмиллиона' },
     { id: 'b_1m',   threshold: 1000000,   title: 'Миллионер' },
-    { id: 'b_2m5',  threshold: 2500000,   title: 'Мульти-милионер' },
+    { id: 'b_2m5',  threshold: 2500000,   title: 'Мультимиллионер' },
     { id: 'b_5m',   threshold: 5000000,   title: 'Очень богатый человек' },
     { id: 'b_10m',  threshold: 10000000,  title: 'Десять миллионов' },
     { id: 'b_50m',  threshold: 50000000,  title: 'Большая лига' },
     { id: 'b_100m', threshold: 100000000, title: 'Легенда капитала' }
   ];
   const unlockedAchievements = new Set();
+
+  // --- Вспомогательные функции ---
+  function getEffectiveIncome(gen) {
+    // Доход этого генератора с учётом его индекса-множителя
+    return gen.incomeBase * gen.index;
+  }
+
+  function getUpgradeCost(gen) {
+    // Стоимость апгрейда = доход * n
+    const income = getEffectiveIncome(gen);
+    return Math.round(income * n);
+  }
+
+  function getTotalIncomePerSecond() {
+    return generators.reduce((sum, gen) =>
+      gen.purchased ? sum + getEffectiveIncome(gen) : sum, 0);
+  }
 
   function showTierUpBanner() {
     tierUpBanner.classList.add('visible');
@@ -259,63 +477,119 @@
 
   // --- Обновление UI ---
   function updateUI() {
+    const totalIncome = getTotalIncomePerSecond();
+
     balanceEl.textContent = balance.toFixed(0);
-
-    // Доход и прирост на следующем уровне
-    const nextIncome = +(incomePerSecond * 1.15).toFixed(2);
-    const deltaIncome = +(nextIncome - incomePerSecond).toFixed(2);
-    incomePerSecEl.textContent =
-      `${incomePerSecond.toFixed(2)} (+${deltaIncome})`;
-
-    levelEl.textContent = level;
+    totalIncomePerSecEl.textContent = totalIncome.toFixed(2);
+    globalLevelEl.textContent = globalLevel;
     tierEl.textContent = tier;
 
-    upgradeCost = Math.round(incomePerSecond * n);
-    upgradeCostEl.textContent = upgradeCost;
-    upgradeBtn.textContent = `Upgrade: ${upgradeCost}`;
-    upgradeBtn.disabled = balance < upgradeCost;
+    // Обновляем генераторы
+    generators.forEach(gen => {
+      const i = gen.index;
+      const income = getEffectiveIncome(gen);
+      const nextIncomeBase = +(gen.incomeBase * 1.15).toFixed(4);
+      const nextIncome = nextIncomeBase * gen.index;
+      const deltaIncome = +(nextIncome - income).toFixed(2);
+
+      if (genIncomeEls[i]) {
+        genIncomeEls[i].textContent =
+          `${income.toFixed(2)} (+${deltaIncome})`;
+      }
+      if (genLevelEls[i]) {
+        genLevelEls[i].textContent = gen.level;
+      }
+
+      const upgradeCost = getUpgradeCost(gen);
+      if (genUpgradeCostEls[i]) {
+        genUpgradeCostEls[i].textContent = upgradeCost;
+      }
+
+      // Покупка (для генераторов 2–5)
+      if (genBuyCostEls[i]) {
+        genBuyCostEls[i].textContent = gen.buyCost;
+      }
+      if (genBuyBtns[i]) {
+        genBuyBtns[i].disabled = gen.purchased || balance < gen.buyCost;
+      }
+
+      // Кнопка апгрейда
+      if (genUpgradeBtns[i]) {
+        if (!gen.purchased) {
+          genUpgradeBtns[i].disabled = true;
+        } else {
+          genUpgradeBtns[i].disabled = balance < upgradeCost;
+        }
+      }
+    });
 
     checkAchievements();
   }
 
-  // --- Пассивный доход ---
-  setInterval(() => {
-    balance += incomePerSecond;
+  // --- Логика покупки генератора ---
+  function buyGenerator(index) {
+    const gen = generators.find(g => g.index === index);
+    if (!gen || gen.purchased) return;
+    if (balance < gen.buyCost) return;
+
+    balance -= gen.buyCost;
+    gen.purchased = true;
     updateUI();
-  }, 1000);
+  }
 
-  // --- Логика апгрейда ---
-  function upgrade() {
-    if (balance < upgradeCost) return;
+  // --- Логика апгрейда генератора ---
+  function upgradeGenerator(index) {
+    const gen = generators.find(g => g.index === index);
+    if (!gen || !gen.purchased) return;
 
-    balance -= upgradeCost;
+    const cost = getUpgradeCost(gen);
+    if (balance < cost) return;
 
-    // уровень +1
-    level += 1;
+    balance -= cost;
 
-    // рост дохода
-    incomePerSecond = +(incomePerSecond * 1.15).toFixed(2);
+    // Локальный уровень генератора
+    gen.level += 1;
 
-    // повышение тира каждые 20 уровней
-    if (level >= 20) {
+    // Рост дохода на генератор
+    gen.incomeBase = +(gen.incomeBase * 1.15).toFixed(4);
+
+    // Глобальный уровень +1, каждые 20 — Tier Up и сброс уровня
+    globalLevel += 1;
+    if (globalLevel >= 20) {
       tier += 1;
-      level = 0;
+      globalLevel = 0;
       showTierUpBanner();
     }
 
-    // n растёт с уровнем и сбрасывается при level=0
-    n = 5 + level;
+    // n растёт с уровнем и сбрасывается при globalLevel=0
+    n = 5 + globalLevel;
 
     updateUI();
   }
 
-  upgradeBtn.addEventListener('click', upgrade);
+  // --- Пассивный доход ---
+  setInterval(() => {
+    balance += getTotalIncomePerSecond();
+    updateUI();
+  }, 1000);
 
-  // --- Тап-зона ---
+  // --- Тап-зона: +общий доход за тап ---
   tapArea.addEventListener('click', () => {
-    balance += incomePerSecond;
+    balance += getTotalIncomePerSecond();
     updateUI();
   });
+
+  // --- Привязка кнопок генераторов ---
+  for (let i = 2; i <= 5; i++) {
+    if (genBuyBtns[i]) {
+      genBuyBtns[i].addEventListener('click', () => buyGenerator(i));
+    }
+  }
+  for (let i = 1; i <= 5; i++) {
+    if (genUpgradeBtns[i]) {
+      genUpgradeBtns[i].addEventListener('click', () => upgradeGenerator(i));
+    }
+  }
 
   // Старт
   updateUI();
