@@ -20,7 +20,7 @@
       padding: 20px 24px;
       border-radius: 12px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-      width: 340px;
+      width: 360px;
       position: relative;
       overflow: hidden;
     }
@@ -103,13 +103,11 @@
       margin-top: 4px;
     }
 
-    .tier-up-banner {
+    .tier-up-banner,
+    .achievement-banner {
       position: absolute;
-      top: 8px;
       left: 50%;
       transform: translateX(-50%) translateY(-20px);
-      background: #ff9f40;
-      color: #2a1300;
       padding: 6px 14px;
       border-radius: 999px;
       font-weight: 700;
@@ -118,9 +116,28 @@
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.3s ease, transform 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .tier-up-banner {
+      top: 8px;
+      background: #ff9f40;
+      color: #2a1300;
+    }
+
+    .achievement-banner {
+      bottom: 8px;
+      background: #9a83ff;
+      color: #0f1620;
+      transform: translateX(-50%) translateY(20px);
     }
 
     .tier-up-banner.visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .achievement-banner.visible {
       opacity: 1;
       transform: translateX(-50%) translateY(0);
     }
@@ -129,6 +146,7 @@
 <body>
 <div class="game">
   <div class="tier-up-banner" id="tierUpBanner">Tier Up!</div>
+  <div class="achievement-banner" id="achievementBanner">Achievement!</div>
 
   <div class="title">Очень простой кликер</div>
 
@@ -172,10 +190,11 @@
   let balance = 0;          // Текущий баланс
   let incomePerSecond = 1;  // Доход в секунду
   let level = 0;            // Локальный уровень внутри тира (0–19)
-  let tier = 1;             // Текущий тир (растёт каждые 20 уровней)
+  let tier = 1;             // Тир
   let n = 5;                // Множитель для стоимости
   let upgradeCost = incomePerSecond * n;
   let tierUpTimeoutId = null;
+  let achievementTimeoutId = null;
 
   const balanceEl = document.getElementById('balance');
   const incomePerSecEl = document.getElementById('incomePerSec');
@@ -185,22 +204,69 @@
   const upgradeBtn = document.getElementById('upgradeBtn');
   const tapArea = document.getElementById('tapArea');
   const tierUpBanner = document.getElementById('tierUpBanner');
+  const achievementBanner = document.getElementById('achievementBanner');
 
-  // --- Показ баннера Tier Up! ---
+  // --- Достижения ---
+  const achievements = [
+    { id: 'b_10',   threshold: 10,        title: 'Первые карманные' },
+    { id: 'b_50',   threshold: 50,        title: 'Небольшая заначка' },
+    { id: 'b_100',  threshold: 100,       title: 'Миллионер (почти)' },
+    { id: 'b_250',  threshold: 250,       title: 'Стабильный доход' },
+    { id: 'b_500',  threshold: 500,       title: 'Тысяча уже близко' },
+    { id: 'b_1k',   threshold: 1000,      title: 'Первая тысяча' },
+    { id: 'b_2k5',  threshold: 2500,      title: 'Местный богач' },
+    { id: 'b_5k',   threshold: 5000,      title: 'Серьёзные сумме' },
+    { id: 'b_10k',  threshold: 10000,     title: 'Маленький бизнес' },
+    { id: 'b_25k',  threshold: 25000,     title: 'Инвестор-любитель' },
+    { id: 'b_50k',  threshold: 50000,     title: 'Полтинник в кармане' },
+    { id: 'b_100k', threshold: 100000,    title: 'Сто тысяч!' },
+    { id: 'b_250k', threshold: 250000,    title: 'Серьёзный капитал' },
+    { id: 'b_500k', threshold: 500000,    title: 'Полмиллиона' },
+    { id: 'b_1m',   threshold: 1000000,   title: 'Миллионер' },
+    { id: 'b_2m5',  threshold: 2500000,   title: 'Мульти-милионер' },
+    { id: 'b_5m',   threshold: 5000000,   title: 'Очень богатый человек' },
+    { id: 'b_10m',  threshold: 10000000,  title: 'Десять миллионов' },
+    { id: 'b_50m',  threshold: 50000000,  title: 'Большая лига' },
+    { id: 'b_100m', threshold: 100000000, title: 'Легенда капитала' }
+  ];
+  const unlockedAchievements = new Set();
+
   function showTierUpBanner() {
     tierUpBanner.classList.add('visible');
-    if (tierUpTimeoutId) {
-      clearTimeout(tierUpTimeoutId);
-    }
+    if (tierUpTimeoutId) clearTimeout(tierUpTimeoutId);
     tierUpTimeoutId = setTimeout(() => {
       tierUpBanner.classList.remove('visible');
-    }, 2000); // 2 секунды
+    }, 2000);
+  }
+
+  function showAchievementBanner(title) {
+    achievementBanner.textContent = 'Достижение: ' + title;
+    achievementBanner.classList.add('visible');
+    if (achievementTimeoutId) clearTimeout(achievementTimeoutId);
+    achievementTimeoutId = setTimeout(() => {
+      achievementBanner.classList.remove('visible');
+    }, 2500);
+  }
+
+  function checkAchievements() {
+    for (const a of achievements) {
+      if (!unlockedAchievements.has(a.id) && balance >= a.threshold) {
+        unlockedAchievements.add(a.id);
+        showAchievementBanner(a.title);
+      }
+    }
   }
 
   // --- Обновление UI ---
   function updateUI() {
     balanceEl.textContent = balance.toFixed(0);
-    incomePerSecEl.textContent = incomePerSecond.toFixed(2);
+
+    // Доход и прирост на следующем уровне
+    const nextIncome = +(incomePerSecond * 1.15).toFixed(2);
+    const deltaIncome = +(nextIncome - incomePerSecond).toFixed(2);
+    incomePerSecEl.textContent =
+      `${incomePerSecond.toFixed(2)} (+${deltaIncome})`;
+
     levelEl.textContent = level;
     tierEl.textContent = tier;
 
@@ -208,9 +274,11 @@
     upgradeCostEl.textContent = upgradeCost;
     upgradeBtn.textContent = `Upgrade (+доход) — ${upgradeCost}`;
     upgradeBtn.disabled = balance < upgradeCost;
+
+    checkAchievements();
   }
 
-  // --- Пассивный доход раз в секунду ---
+  // --- Пассивный доход ---
   setInterval(() => {
     balance += incomePerSecond;
     updateUI();
@@ -220,23 +288,22 @@
   function upgrade() {
     if (balance < upgradeCost) return;
 
-    // Списываем стоимость
     balance -= upgradeCost;
 
-    // Уровень +1
+    // уровень +1
     level += 1;
 
-    // Увеличиваем доход (стандартная формула кликеров)
+    // рост дохода
     incomePerSecond = +(incomePerSecond * 1.15).toFixed(2);
 
-    // Проверка на повышение тира
+    // повышение тира каждые 20 уровней
     if (level >= 20) {
       tier += 1;
-      level = 0;      // уровень сбрасывается
+      level = 0;
       showTierUpBanner();
     }
 
-    // n = 5 + level, то есть растёт внутри тира и сбрасывается к 5 при level=0
+    // n растёт с уровнем и сбрасывается при level=0
     n = 5 + level;
 
     updateUI();
@@ -244,13 +311,13 @@
 
   upgradeBtn.addEventListener('click', upgrade);
 
-  // --- Тап-зона: активный доход ---
+  // --- Тап-зона ---
   tapArea.addEventListener('click', () => {
     balance += incomePerSecond;
     updateUI();
   });
 
-  // Первичная инициализация UI
+  // Старт
   updateUI();
 </script>
 </body>
