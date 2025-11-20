@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Простой кликер</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #1b2430;
+      color: #f5f7fb;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .game {
+      background: #222b39;
+      padding: 20px 24px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      width: 340px;
+    }
+
+    .title {
+      text-align: center;
+      font-size: 20px;
+      margin-bottom: 16px;
+    }
+
+    .stats {
+      font-size: 14px;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .label {
+      opacity: 0.7;
+    }
+
+    .value {
+      font-weight: 600;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .upgrade-btn {
+      width: 100%;
+      margin-bottom: 12px;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      background: #2ed38d;
+      color: #0f1620;
+      transition: transform 0.05s ease, box-shadow 0.05s ease, background 0.2s ease;
+      box-shadow: 0 4px 0 #149e6b;
+    }
+
+    .upgrade-btn:active:not(:disabled) {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #149e6b;
+    }
+
+    .upgrade-btn:disabled {
+      cursor: default;
+      opacity: 0.5;
+      box-shadow: 0 0 0 transparent;
+    }
+
+    .tap-area {
+      margin-top: 8px;
+      border-radius: 10px;
+      border: 2px dashed #4a5a6c;
+      padding: 18px;
+      text-align: center;
+      font-size: 14px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.1s ease, transform 0.05s ease;
+    }
+
+    .tap-area:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .tap-area:active {
+      transform: scale(0.98);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .tap-hint {
+      font-size: 12px;
+      opacity: 0.7;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+<div class="game">
+  <div class="title">Очень простой кликер</div>
+
+  <div class="stats">
+    <div class="row">
+      <span class="label">Баланс:</span>
+      <span class="value" id="balance">0</span>
+    </div>
+    <div class="row">
+      <span class="label">Доход в секунду:</span>
+      <span class="value" id="incomePerSec">1</span>
+    </div>
+    <div class="row">
+      <span class="label">Уровень:</span>
+      <span class="value" id="level">0</span>
+    </div>
+    <div class="row">
+      <span class="label">Стоимость апгрейда:</span>
+      <span class="value" id="upgradeCost">5</span>
+    </div>
+  </div>
+
+  <button class="upgrade-btn" id="upgradeBtn">
+    Upgrade (+доход) — 5
+  </button>
+
+  <div class="tap-area" id="tapArea">
+    Тап-зона — нажимай, чтобы получать валюту!
+    <div class="tap-hint">
+      Каждый тап даёт +текущий доход в секунду.
+    </div>
+  </div>
+</div>
+
+<script>
+  // --- Основные переменные ---
+  let balance = 0;          // Текущая валюта игрока
+  let incomePerSecond = 1;  // Доход в секунду
+  let level = 0;            // Уровень (растёт на 1 за каждый апгрейд)
+  let n = 5;                // Множитель для стоимости (доход * n)
+  let upgradeCost = incomePerSecond * n;
+
+  const balanceEl = document.getElementById('balance');
+  const incomePerSecEl = document.getElementById('incomePerSec');
+  const levelEl = document.getElementById('level');
+  const upgradeCostEl = document.getElementById('upgradeCost');
+  const upgradeBtn = document.getElementById('upgradeBtn');
+  const tapArea = document.getElementById('tapArea');
+
+  // --- Обновление UI ---
+  function updateUI() {
+    balanceEl.textContent = balance.toFixed(0);
+    incomePerSecEl.textContent = incomePerSecond.toFixed(2);
+    levelEl.textContent = level;
+
+    upgradeCost = Math.round(incomePerSecond * n);
+    upgradeCostEl.textContent = upgradeCost;
+    upgradeBtn.textContent = `Upgrade (+доход) — ${upgradeCost}`;
+    upgradeBtn.disabled = balance < upgradeCost;
+  }
+
+  // --- Тик каждую секунду: пассивный доход ---
+  setInterval(() => {
+    balance += incomePerSecond;
+    updateUI();
+  }, 1000);
+
+  // --- Логика апгрейда ---
+  // Стоимость: cost = доход_в_секунду * n
+  // n растёт на 1 после каждого апгрейда и сбрасывается к 5 каждые 20 апгрейдов
+  function upgrade() {
+    if (balance < upgradeCost) return;
+
+    // Списываем стоимость
+    balance -= upgradeCost;
+
+    // Уровень +1
+    level += 1;
+
+    // Увеличиваем доход "по стандартной формуле кликеров":
+    // пример: множитель 1.15 за апгрейд
+    incomePerSecond = +(incomePerSecond * 1.15).toFixed(2);
+
+    // Обновляем n: растёт с каждым апгрейдом, сбрасывается к 5 каждые 20 апгрейдов
+    n = 5 + (level % 20);
+
+    updateUI();
+  }
+
+  upgradeBtn.addEventListener('click', upgrade);
+
+  // --- Тап-зона: активный доход ---
+  // Теперь тап добавляет К ТЕКУЩЕМУ ДОХОДУ В СЕКУНДУ
+  tapArea.addEventListener('click', () => {
+    balance += incomePerSecond;
+    updateUI();
+  });
+
+  // Первичная инициализация UI
+  updateUI();
+</script>
+</body>
+</html>
