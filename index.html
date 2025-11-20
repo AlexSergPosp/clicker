@@ -21,6 +21,8 @@
       border-radius: 12px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
       width: 340px;
+      position: relative;
+      overflow: hidden;
     }
 
     .title {
@@ -100,10 +102,34 @@
       opacity: 0.7;
       margin-top: 4px;
     }
+
+    .tier-up-banner {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: #ff9f40;
+      color: #2a1300;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 14px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .tier-up-banner.visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
   </style>
 </head>
 <body>
 <div class="game">
+  <div class="tier-up-banner" id="tierUpBanner">Tier Up!</div>
+
   <div class="title">Очень простой кликер</div>
 
   <div class="stats">
@@ -118,6 +144,10 @@
     <div class="row">
       <span class="label">Уровень:</span>
       <span class="value" id="level">0</span>
+    </div>
+    <div class="row">
+      <span class="label">Тир:</span>
+      <span class="value" id="tier">1</span>
     </div>
     <div class="row">
       <span class="label">Стоимость апгрейда:</span>
@@ -139,24 +169,40 @@
 
 <script>
   // --- Основные переменные ---
-  let balance = 0;          // Текущая валюта игрока
+  let balance = 0;          // Текущий баланс
   let incomePerSecond = 1;  // Доход в секунду
-  let level = 0;            // Уровень (растёт на 1 за каждый апгрейд)
-  let n = 5;                // Множитель для стоимости (доход * n)
+  let level = 0;            // Локальный уровень внутри тира (0–19)
+  let tier = 1;             // Текущий тир (растёт каждые 20 уровней)
+  let n = 5;                // Множитель для стоимости
   let upgradeCost = incomePerSecond * n;
+  let tierUpTimeoutId = null;
 
   const balanceEl = document.getElementById('balance');
   const incomePerSecEl = document.getElementById('incomePerSec');
   const levelEl = document.getElementById('level');
+  const tierEl = document.getElementById('tier');
   const upgradeCostEl = document.getElementById('upgradeCost');
   const upgradeBtn = document.getElementById('upgradeBtn');
   const tapArea = document.getElementById('tapArea');
+  const tierUpBanner = document.getElementById('tierUpBanner');
+
+  // --- Показ баннера Tier Up! ---
+  function showTierUpBanner() {
+    tierUpBanner.classList.add('visible');
+    if (tierUpTimeoutId) {
+      clearTimeout(tierUpTimeoutId);
+    }
+    tierUpTimeoutId = setTimeout(() => {
+      tierUpBanner.classList.remove('visible');
+    }, 2000); // 2 секунды
+  }
 
   // --- Обновление UI ---
   function updateUI() {
     balanceEl.textContent = balance.toFixed(0);
     incomePerSecEl.textContent = incomePerSecond.toFixed(2);
     levelEl.textContent = level;
+    tierEl.textContent = tier;
 
     upgradeCost = Math.round(incomePerSecond * n);
     upgradeCostEl.textContent = upgradeCost;
@@ -164,15 +210,13 @@
     upgradeBtn.disabled = balance < upgradeCost;
   }
 
-  // --- Тик каждую секунду: пассивный доход ---
+  // --- Пассивный доход раз в секунду ---
   setInterval(() => {
     balance += incomePerSecond;
     updateUI();
   }, 1000);
 
   // --- Логика апгрейда ---
-  // Стоимость: cost = доход_в_секунду * n
-  // n растёт на 1 после каждого апгрейда и сбрасывается к 5 каждые 20 апгрейдов
   function upgrade() {
     if (balance < upgradeCost) return;
 
@@ -182,12 +226,18 @@
     // Уровень +1
     level += 1;
 
-    // Увеличиваем доход "по стандартной формуле кликеров":
-    // пример: множитель 1.15 за апгрейд
+    // Увеличиваем доход (стандартная формула кликеров)
     incomePerSecond = +(incomePerSecond * 1.15).toFixed(2);
 
-    // Обновляем n: растёт с каждым апгрейдом, сбрасывается к 5 каждые 20 апгрейдов
-    n = 5 + (level % 20);
+    // Проверка на повышение тира
+    if (level >= 20) {
+      tier += 1;
+      level = 0;      // уровень сбрасывается
+      showTierUpBanner();
+    }
+
+    // n = 5 + level, то есть растёт внутри тира и сбрасывается к 5 при level=0
+    n = 5 + level;
 
     updateUI();
   }
@@ -195,7 +245,6 @@
   upgradeBtn.addEventListener('click', upgrade);
 
   // --- Тап-зона: активный доход ---
-  // Теперь тап добавляет К ТЕКУЩЕМУ ДОХОДУ В СЕКУНДУ
   tapArea.addEventListener('click', () => {
     balance += incomePerSecond;
     updateUI();
