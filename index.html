@@ -272,7 +272,7 @@
 
     upgradeCost = Math.round(incomePerSecond * n);
     upgradeCostEl.textContent = upgradeCost;
-    upgradeBtn.textContent = `Upgrade for ${upgradeCost}`;
+    upgradeBtn.textContent = `${upgradeCost}`;
     upgradeBtn.disabled = balance < upgradeCost;
 
     checkAchievements();
