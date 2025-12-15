@@ -1,0 +1,10 @@
+﻿{
+  "goalSoft": 1000000,
+  "milestone": 25,
+  "milestoneMul": 2,
+  "intervalMul": 0.85,
+  "nextCarCooldownMinutes": 0.5,
+  "rngSeed": 12345,
+  "emojiFallback": "🚗",
+  "collectionBoostPerSalePct": 5
+}

@@ -1,0 +1,12 @@
+[
+  { "id":"track_kings",  "name":"Track Kings",  "tags":["sport","aero","track"], "rewardFirst":5, "rewardRepeat":1 },
+  { "id":"street_neon",  "name":"Street Neon",  "tags":["tuner","drift","neon"], "rewardFirst":5, "rewardRepeat":1 },
+  { "id":"heavy_duty",   "name":"Heavy Duty",   "tags":["diesel","utility","rugged"], "rewardFirst":5, "rewardRepeat":1 },
+  { "id":"green_pulse",  "name":"Green Pulse",  "tags":["electric","futuristic","compact"], "rewardFirst":5, "rewardRepeat":1 },
+  { "id":"grand_tour",   "name":"Grand Tour",   "tags":["luxury","comfort","touring","leather"], "rewardFirst":5, "rewardRepeat":1 },
+  { "id":"silent_strike","name":"Silent Strike","tags":["stealth","exotic","carbon"], "rewardFirst":5, "rewardRepeat":1 },
+  { "id":"boost_brigade","name":"Boost Brigade","tags":["turbo","muscle","offroad"], "rewardFirst":5, "rewardRepeat":1 },
+  { "id":"city_micro",   "name":"City Micro",   "tags":["compact","utility","aero"], "rewardFirst":5, "rewardRepeat":1 },
+  { "id":"night_run",    "name":"Night Run",    "tags":["neon","stealth","sport"], "rewardFirst":5, "rewardRepeat":1 },
+  { "id":"full_garage",  "name":"Full Garage",  "tags":"ALL", "rewardFirst":5, "rewardRepeat":1 }
+]

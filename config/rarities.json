@@ -1,0 +1,7 @@
+{
+  "common":    { "dropChance": 0.40, "unlockCostGems": 1 },
+  "uncommon":  { "dropChance": 0.30, "unlockCostGems": 2 },
+  "rare":      { "dropChance": 0.20, "unlockCostGems": 4 },
+  "epic":      { "dropChance": 0.09, "unlockCostGems": 7 },
+  "legendary": { "dropChance": 0.01, "unlockCostGems": 12 }
+}

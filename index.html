@@ -1,0 +1,108 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Idle Auto Clicker</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="currencies">
+        <div class="pill">💰 <span id="soft">0</span></div>
+        <label class="pill"><input type="checkbox" id="cheat-toggle"> Читы</label>
+        <div id="cheat-panel" class="cheats hidden">
+          <button id="cheat-soft" class="primary">+1M</button>
+          <button id="cheat-car" class="primary">Give Car</button>
+          <button id="cheat-auto" class="primary">Reset Auto CD</button>
+          <button id="cheat-reset" class="primary danger">Reset</button>
+        </div>
+      </div>
+      <nav>
+        <button data-tab="clicker" class="active">Кликер</button>
+        <button data-tab="collections">Коллекции</button>
+        <button data-tab="cars">Авто</button>
+        <button data-tab="config">Конфиг</button>
+      </nav>
+    </header>
+
+    <main>
+      <section id="tab-clicker">
+        <div class="panel">
+          <div>Прогресс к цели: <span id="session-progress-text">0%</span></div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="progress" style="position:relative; flex:1;">
+              <div class="bar" id="session-bar"></div>
+            </div>
+            <div class="icon large" id="progress-car-icon"></div>
+          </div>
+          <div class="small" id="buy-cost-label"></div>
+          <button id="buy-btn" class="primary" style="margin-top:8px;">Купить авто</button>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="panel click-panel">
+            <div class="panel" style="margin-top:12px; background:var(--bg-elevated);">
+              <div class="title small">Доход / сек</div>
+              <canvas id="income-chart" width="600" height="180" style="width:100%; height:180px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.08); border-radius:8px;"></canvas>
+              <div id="income-stats" class="small" style="display:flex; gap:16px; margin-top:6px; flex-wrap:wrap;"></div>
+              <div id="combined-info" class="small" style="display:flex; gap:12px; flex-wrap:wrap; margin-top:6px;"></div>
+            </div>
+            <button id="click-btn" class="primary big-btn">Клик!</button>
+            <div id="click-fx-layer" class="fx-layer"></div>
+          </div>
+          <div class="panel">
+            <div class="title">Генераторы</div>
+            <div id="upgrades" class="grid grid-2"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-collections" class="section-hidden">
+        <div class="panel">
+          <div class="title">Коллекции</div>
+          <div id="collections" class="grid grid-2"></div>
+        </div>
+      </section>
+
+      <section id="tab-config" class="section-hidden">
+        <div class="panel">
+          <div class="title">Конфиг</div>
+          <pre id="config-view" class="code-box"></pre>
+        </div>
+      </section>
+
+      <section id="tab-cars" class="section-hidden">
+        <div class="panel">
+          <div class="title">Все автомобили</div>
+          <div class="subtitle">Справочник: внешний вид, теги и бусты.</div>
+          <div id="car-gallery" class="grid grid-3"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="choice-modal" class="modal section-hidden">
+    <div class="dialog">
+      <h2>Выбор авто</h2>
+      <div class="grid grid-2" id="choice-grid-modal"></div>
+    </div>
+  </div>
+
+  <div id="build-modal" class="modal section-hidden">
+    <div class="dialog" id="build-dialog"></div>
+  </div>
+
+  <div id="cooldown-modal" class="modal section-hidden">
+    <div class="dialog" id="cooldown-dialog"></div>
+  </div>
+
+  <div id="collection-modal" class="modal section-hidden">
+    <div class="dialog" id="collection-dialog"></div>
+  </div>
+
+  <div id="fx-global" class="fx-global"></div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
